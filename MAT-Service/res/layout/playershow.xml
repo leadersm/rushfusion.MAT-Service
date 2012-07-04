@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/page_playershow_mainview"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:gravity="center"
     android:orientation="vertical" >
 
-    <VideoView
-        android:id="@+id/videoView1"
+    <SurfaceView android:id="@+id/page_playershow_surfaceview"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="fill_parent"
+        android:layout_gravity="center"/>
+
 
 </LinearLayout>

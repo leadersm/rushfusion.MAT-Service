@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 import android.app.Service;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -30,13 +31,6 @@ public class MATService extends Service {
 	public IBinder onBind(Intent intent) {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	public void onStart(Intent intent, int startId) {
-		// TODO Auto-generated method stub
-		super.onStart(intent, startId);
-		Log.d(TAG, "------------onStart----------");
 	}
 	
 	@Override
@@ -103,16 +97,27 @@ public class MATService extends Service {
 										}else if(req.equals("playreq")){
 											Log.d(TAG, "response playreq  url-->"+map.get("url"));
 											String url = map.get("url");
-											Intent i = new Intent(getApplicationContext(),PlayActivity.class);
-											i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-											i.putExtra("url", url);
-											startActivity(i);
+											if(url.indexOf("html")==(url.length()-4)){
+												Intent it = new Intent(Intent.ACTION_VIEW , Uri.parse(url));
+												startActivity(it);
+											}else {
+												Intent i = new Intent(getApplicationContext(),MediaPlayerShow.class);
+												i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+												i.putExtra("cmd", "play");
+												i.putExtra("url", url);
+												i.putExtra("title", map.get("title"));
+												startActivity(i);
+											}
 										}else if(req.equals("pausereq")){
 											Log.d(TAG, "response pausereq-->");
-											
+											Intent i = new Intent("com.rushfusion.matservice");
+											i.putExtra("cmd", "pause");
+											sendBroadcast(i);
 										}else if(req.equals("stopreq")){
 											Log.d(TAG, "response stopreq-->");
-											
+											Intent i = new Intent("com.rushfusion.matservice");
+											i.putExtra("cmd", "stop");
+											sendBroadcast(i);
 										}else if(req.equals("")){
 											
 										}

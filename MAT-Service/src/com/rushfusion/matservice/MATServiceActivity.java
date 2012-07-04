@@ -13,5 +13,6 @@ public class MATServiceActivity extends Activity {
         setContentView(R.layout.main);
         Intent i = new Intent(this,MATService.class);
         startService(i);
+        finish();
     }
 }
