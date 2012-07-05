@@ -11,10 +11,10 @@
 
     <application
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name" >
+        android:label="@string/app_name"
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" >
         <activity
             android:name=".MATServiceActivity"
-            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,7 +26,9 @@
         <service android:name=".MATService" >
         </service>
 
-        <activity android:name=".MediaPlayerShow"  android:launchMode="singleInstance" >
+        <activity
+            android:name=".MediaPlayerShow"
+            android:launchMode="singleInstance" >
         </activity>
 
         <receiver android:name="com.rushfusion.receiver.BootReceiver" >

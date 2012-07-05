@@ -11,7 +11,10 @@ import java.util.Enumeration;
 import java.util.HashMap;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
@@ -26,6 +29,8 @@ public class MATService extends Service {
 	private static final String TAG = "MATService";
 	private DatagramSocket s = null;
 	private String mIp;
+	private String preUrl = "";
+	
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -42,10 +47,30 @@ public class MATService extends Service {
 			mIp = getLocalIpAddress();
 			Thread mReceiveThread = new Thread(receiveRunnable);
 			mReceiveThread.start();
+			registerReceiver(r, new IntentFilter("com.rushfusion.matshow"));
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
+		
 	}
+	
+	private boolean isPlaying = false;
+	
+	BroadcastReceiver r = new BroadcastReceiver() {
+		
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// TODO Auto-generated method stub
+			String cmd = intent.getStringExtra("cmd");
+			Log.d(TAG, "back to service cmd--->"+cmd);
+			if(cmd.equals("release")){
+				preUrl = "";
+				isPlaying = false;
+			}else if(cmd.equals("state")){
+				isPlaying = intent.getBooleanExtra("isPlaying", false);
+			}
+		}
+	};
 	
 	public String getLocalIpAddress() {
 		try {
@@ -81,7 +106,6 @@ public class MATService extends Service {
 				s.receive(packet);
 				if (packet.getLength() > 0) {
 					String str = new String(buffer, 0, packet.getLength());
-					System.out.println("receive-->" + str);
 					MscpDataParser.getInstance().init(this);
 					MscpDataParser.getInstance().parse(packet,
 							new MscpDataParser.CallBack() {
@@ -97,16 +121,21 @@ public class MATService extends Service {
 										}else if(req.equals("playreq")){
 											Log.d(TAG, "response playreq  url-->"+map.get("url"));
 											String url = map.get("url");
-											if(url.indexOf("html")==(url.length()-4)){
-												Intent it = new Intent(Intent.ACTION_VIEW , Uri.parse(url));
-												startActivity(it);
-											}else {
-												Intent i = new Intent(getApplicationContext(),MediaPlayerShow.class);
-												i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-												i.putExtra("cmd", "play");
-												i.putExtra("url", url);
-												i.putExtra("title", map.get("title"));
-												startActivity(i);
+											Log.d(TAG, "isPlaying---->"+isPlaying);
+											if(isPlaying){
+												if(preUrl.equals(url)){
+													Intent i = new Intent("com.rushfusion.matservice");
+													i.putExtra("cmd", "resume");
+													sendBroadcast(i);
+												}else{
+													preUrl = url;
+													Intent i = new Intent("com.rushfusion.matservice");
+													i.putExtra("cmd", "reset");
+													i.putExtra("url", url);
+													sendBroadcast(i);
+												}
+											}else{
+												doPlay(map, url);
 											}
 										}else if(req.equals("pausereq")){
 											Log.d(TAG, "response pausereq-->");
@@ -122,6 +151,20 @@ public class MATService extends Service {
 											
 										}
 										
+									}
+								}
+								private void doPlay(HashMap<String, String> map, String url) {
+									preUrl = url;
+									if(url.indexOf("html")==(url.length()-4)){
+										Intent it = new Intent(Intent.ACTION_VIEW , Uri.parse(url));
+										startActivity(it);
+									}else {
+										Intent i = new Intent(getApplicationContext(),MediaPlayerShow.class);
+										i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+										i.putExtra("cmd", "play");
+										i.putExtra("url", url);
+										i.putExtra("title", map.get("title"));
+										startActivity(i);
 									}
 								}
 								@Override

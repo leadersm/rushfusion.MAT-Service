@@ -11,8 +11,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnBufferingUpdateListener;
 import android.media.MediaPlayer.OnCompletionListener;
@@ -62,8 +60,34 @@ public class MediaPlayerShow extends Activity implements
 			if (cmd.equals("pause")) {
 				pause();
 			} else if (cmd.equals("stop")) {
+				if(pDialog.isShowing()){
+					pDialog.dismiss();
+				}
 				mediaPlayer.stop();
+				Intent i = new Intent("com.rushfusion.matshow");
+				i.putExtra("cmd","release");
+				sendBroadcast(i);
 				finish();
+			} else if(cmd.equals("resume")){
+				mediaPlayer.start();
+				Intent i = new Intent("com.rushfusion.matshow");
+				i.putExtra("cmd", "state");
+				i.putExtra("isPlaying", true);
+				sendBroadcast(i);
+			} else if(cmd.equals("reset")){
+				pause();
+				mediaPlayer.reset();
+				String url = intent.getStringExtra("url");
+				try {
+					mediaPlayer.setDataSource(url);
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalStateException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				mediaPlayer.start();
 			}
 		}
 	};
@@ -91,15 +115,6 @@ public class MediaPlayerShow extends Activity implements
 		mediaPlayer.setOnBufferingUpdateListener(this);
 		
 		title = i.getStringExtra("title");
-//		SharedPreferences prefs = getSharedPreferences("myDataStorage",
-//				MODE_PRIVATE);
-//		int testPosition = prefs.getInt(movieName, -1);
-//		if (testPosition != -1) {
-//			System.out.println("进入为已播放的判断");
-//			isContinue = true;
-//			contiuePosition = testPosition;
-//		}
-
 		try {
 			if(cmd.equals("play")){
 	        	String url = i.getStringExtra("url");
@@ -182,6 +197,7 @@ public class MediaPlayerShow extends Activity implements
 		}
 	}
 
+	
 	@Override
 	public void seekTo(int pos) {
 		if (mediaPlayer != null) {
@@ -203,9 +219,9 @@ public class MediaPlayerShow extends Activity implements
 			System.out.println("mediaplayer.start 出错了！");
 			finish();
 		}
-
 	}
 
+	
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
@@ -221,10 +237,12 @@ public class MediaPlayerShow extends Activity implements
 		}
 		pDialog = new ProgressDialog(this);
 		pDialog.setMessage("视频加载中，请稍后");
-		pDialog.setCancelable(false);
 		pDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 		pDialog.show();
 	}
+
+	
+	
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
@@ -332,19 +350,21 @@ public class MediaPlayerShow extends Activity implements
 			dialog.show();
 		}
 		mediaPlayer.start();
+		Intent i = new Intent("com.rushfusion.matshow");
+		i.putExtra("cmd", "state");
+		i.putExtra("isPlaying", true);
+		sendBroadcast(i);
 	}
 
 	@Override
 	protected void onPause() {
-		SharedPreferences prefs = getSharedPreferences("myDataStorage",
-				MODE_PRIVATE);
-		Editor editor = prefs.edit();
-		editor.putInt(title, saveTime);
-		editor.commit();
 		if (mediaPlayer != null) {
 			mediaPlayer.release();
 		}
-		System.out.println("已保存数据： " + title + ":" + saveTime);
+		Intent i = new Intent("com.rushfusion.matshow");
+		i.putExtra("cmd", "state");
+		i.putExtra("isPlaying", false);
+		sendBroadcast(i);
 		super.onPause();
 	}
 
@@ -442,8 +462,8 @@ public class MediaPlayerShow extends Activity implements
 
 	@Override
 	protected void onStop() {
-		super.onStop();
 		unregisterReceiver(br);
+		super.onStop();
 	}
 	
 }
