@@ -30,6 +30,10 @@
             android:name=".MediaPlayerShow"
             android:launchMode="singleInstance" >
         </activity>
+        <activity
+            android:name=".PlayActivity"
+            android:launchMode="singleInstance" >
+        </activity>
 
         <receiver android:name="com.rushfusion.receiver.BootReceiver" >
             <intent-filter android:priority="8888" >

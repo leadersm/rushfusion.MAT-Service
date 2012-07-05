@@ -20,6 +20,7 @@ import android.media.MediaPlayer.OnPreparedListener;
 import android.media.MediaPlayer.OnSeekCompleteListener;
 import android.media.MediaPlayer.OnVideoSizeChangedListener;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
@@ -56,7 +57,7 @@ public class MediaPlayerShow extends Activity implements
 		public void onReceive(Context context, Intent intent) {
 			// TODO Auto-generated method stub
 			String cmd = intent.getStringExtra("cmd");
-			System.out.println("onReceive cmd--->" + cmd);
+			Log.d("MATService","onReceive cmd--->" + cmd);
 			if (cmd.equals("pause")) {
 				pause();
 			} else if (cmd.equals("stop")) {
@@ -76,7 +77,8 @@ public class MediaPlayerShow extends Activity implements
 				sendBroadcast(i);
 			} else if(cmd.equals("reset")){
 				pause();
-				mediaPlayer.reset();
+//				mediaPlayer.reset();
+				mediaPlayer.prepareAsync();
 				String url = intent.getStringExtra("url");
 				try {
 					mediaPlayer.setDataSource(url);

@@ -119,7 +119,7 @@ public class MATService extends Service {
 											Log.d(TAG, "response searchreq-->");
 											responseTo(IP,ConstructResponseData.SearchResponse(0, mIp));
 										}else if(req.equals("playreq")){
-											Log.d(TAG, "response playreq  url-->"+map.get("url"));
+											Log.d(TAG, "receive play url-->"+map.get("url"));
 											String url = map.get("url");
 											Log.d(TAG, "isPlaying---->"+isPlaying);
 											if(isPlaying){
@@ -138,12 +138,12 @@ public class MATService extends Service {
 												doPlay(map, url);
 											}
 										}else if(req.equals("pausereq")){
-											Log.d(TAG, "response pausereq-->");
+											Log.d(TAG, "receive pause-->");
 											Intent i = new Intent("com.rushfusion.matservice");
 											i.putExtra("cmd", "pause");
 											sendBroadcast(i);
 										}else if(req.equals("stopreq")){
-											Log.d(TAG, "response stopreq-->");
+											Log.d(TAG, "receive stop-->");
 											Intent i = new Intent("com.rushfusion.matservice");
 											i.putExtra("cmd", "stop");
 											sendBroadcast(i);
