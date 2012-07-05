@@ -9,6 +9,8 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -30,7 +32,7 @@ public class MATService extends Service {
 	private DatagramSocket s = null;
 	private String mIp;
 	private String preUrl = "";
-	
+	Set<String> ips;
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -73,22 +75,46 @@ public class MATService extends Service {
 	};
 	
 	public String getLocalIpAddress() {
+//		try {
+//			for (Enumeration<NetworkInterface> en = NetworkInterface
+//					.getNetworkInterfaces(); en.hasMoreElements();) {
+//				NetworkInterface intf = en.nextElement();
+//				for (Enumeration<InetAddress> enumIpAddr = intf
+//						.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+//					InetAddress inetAddress = enumIpAddr.nextElement();
+//					if (!inetAddress.isLoopbackAddress()) {
+//						return inetAddress.getHostAddress().toString();
+//					}
+//				}
+//			}
+//		} catch (SocketException ex) {
+//			ex.printStackTrace();
+//		}
+//		return null;
+		
+		ips = new HashSet<String>();
+		Enumeration en;
 		try {
-			for (Enumeration<NetworkInterface> en = NetworkInterface
-					.getNetworkInterfaces(); en.hasMoreElements();) {
-				NetworkInterface intf = en.nextElement();
-				for (Enumeration<InetAddress> enumIpAddr = intf
-						.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-					InetAddress inetAddress = enumIpAddr.nextElement();
-					if (!inetAddress.isLoopbackAddress()) {
-						return inetAddress.getHostAddress().toString();
-					}
+			en = NetworkInterface.getNetworkInterfaces();
+			while(en.hasMoreElements()){
+				NetworkInterface intf = (NetworkInterface)en.nextElement();
+				Enumeration enadd = intf.getInetAddresses();
+				while(enadd.hasMoreElements()){
+					InetAddress add = (InetAddress)enadd.nextElement();
+					ips.add(add.getHostAddress());
 				}
 			}
-		} catch (SocketException ex) {
-			ex.printStackTrace();
+			for(String s : ips){
+	        	if(s.indexOf(":")==-1 && !(s.equals("127.0.0.1"))){
+	        		return s;
+	        		}
+	        	}
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return null;
+		return "";
+		
 	}
 	
 	Runnable receiveRunnable = new Runnable() {
