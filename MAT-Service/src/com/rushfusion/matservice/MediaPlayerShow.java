@@ -38,6 +38,9 @@ public class MediaPlayerShow extends Activity implements
 		OnCompletionListener, OnErrorListener, OnInfoListener,
 		OnPreparedListener, OnSeekCompleteListener, Callback,
 		MediaPlayerControl {
+	public static final String ACTION = "com.rushfusion.matshow";
+	
+	
 	SurfaceView surfaceView;
 	SurfaceHolder surfaceHolder;
 	MediaPlayer mediaPlayer;
@@ -47,8 +50,6 @@ public class MediaPlayerShow extends Activity implements
 	int videoHeight = 0;
 	int contiuePosition = 0;
 	String title;
-	boolean isContinue = false;
-	ProgressDialog pDialog;
 	int saveTime = 0;
 
 	BroadcastReceiver br = new BroadcastReceiver() {
@@ -61,27 +62,27 @@ public class MediaPlayerShow extends Activity implements
 			if (cmd.equals("pause")) {
 				pause();
 			} else if (cmd.equals("stop")) {
-				if(pDialog.isShowing()){
-					pDialog.dismiss();
-				}
+				dismissDialog(0);
 				mediaPlayer.stop();
-				Intent i = new Intent("com.rushfusion.matshow");
+				Intent i = new Intent(ACTION);
 				i.putExtra("cmd","release");
 				sendBroadcast(i);
 				finish();
 			} else if(cmd.equals("resume")){
 				mediaPlayer.start();
-				Intent i = new Intent("com.rushfusion.matshow");
+				Intent i = new Intent(ACTION);
 				i.putExtra("cmd", "state");
 				i.putExtra("isPlaying", true);
 				sendBroadcast(i);
 			} else if(cmd.equals("reset")){
-				pause();
-//				mediaPlayer.reset();
-				mediaPlayer.prepareAsync();
+				mediaPlayer.stop();
+				mediaPlayer.reset();
+				mediaPlayer.release();
+				initMediaPlayer();
 				String url = intent.getStringExtra("url");
 				try {
 					mediaPlayer.setDataSource(url);
+					mediaPlayer.prepare();
 				} catch (IllegalArgumentException e) {
 					e.printStackTrace();
 				} catch (IllegalStateException e) {
@@ -89,7 +90,15 @@ public class MediaPlayerShow extends Activity implements
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				mediaPlayer.start();
+			}else if(cmd.equals("seek")){
+				int pos = intent.getIntExtra("pos", 0);
+				if(mediaPlayer!=null)
+					mediaPlayer.seekTo(mediaPlayer.getDuration()*pos/100);
+				
+				Intent i = new Intent(ACTION);
+				i.putExtra("cmd", "state-duration");
+				i.putExtra("pos", mediaPlayer.getCurrentPosition());
+				sendBroadcast(i);
 			}
 		}
 	};
@@ -107,14 +116,8 @@ public class MediaPlayerShow extends Activity implements
 		surfaceHolder = surfaceView.getHolder();
 		surfaceHolder.addCallback(this);
 		surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-		mediaPlayer = new MediaPlayer();
-		mediaPlayer.setOnCompletionListener(this);
-		mediaPlayer.setOnErrorListener(this);
-		mediaPlayer.setOnInfoListener(this);
-		mediaPlayer.setOnPreparedListener(this);
-		mediaPlayer.setOnSeekCompleteListener(this);
-		mediaPlayer.setOnVideoSizeChangedListener(this);
-		mediaPlayer.setOnBufferingUpdateListener(this);
+		
+		initMediaPlayer();
 		
 		title = i.getStringExtra("title");
 		try {
@@ -142,6 +145,18 @@ public class MediaPlayerShow extends Activity implements
 				}
 			}
 		});
+	}
+
+	private void initMediaPlayer() {
+		mediaPlayer = new MediaPlayer();
+		mediaPlayer.setOnCompletionListener(this);
+		mediaPlayer.setOnErrorListener(this);
+		mediaPlayer.setOnInfoListener(this);
+		mediaPlayer.setOnPreparedListener(this);
+		mediaPlayer.setOnSeekCompleteListener(this);
+		mediaPlayer.setOnVideoSizeChangedListener(this);
+		mediaPlayer.setOnBufferingUpdateListener(this);
+		showDialog(0);	
 	}
 
 	@Override
@@ -204,7 +219,7 @@ public class MediaPlayerShow extends Activity implements
 	public void seekTo(int pos) {
 		if (mediaPlayer != null) {
 			// mediaPlayer.pause();
-			pDialog.show();
+			showDialog(0);
 			mediaPlayer.seekTo(pos);
 		} else {
 			System.out.println("mediaplayer.seekto 出错了！");
@@ -237,13 +252,21 @@ public class MediaPlayerShow extends Activity implements
 		} catch (IllegalStateException e) {
 			System.out.println("surface准备中出错 ，错误信息 ：" + e.toString());
 		}
-		pDialog = new ProgressDialog(this);
-		pDialog.setMessage("视频加载中，请稍后");
-		pDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-		pDialog.show();
 	}
 
-	
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+		case 0:
+			ProgressDialog dialog = new ProgressDialog(this);
+			dialog.setMessage("视频加载中，请稍后");
+			dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+			return dialog;
+		default:
+			break;
+		}
+		return null;
+	}
 	
 
 	@Override
@@ -288,10 +311,10 @@ public class MediaPlayerShow extends Activity implements
 	public void onSeekComplete(MediaPlayer mp) {
 
 		if (mediaPlayer != null) {
-			pDialog.cancel();
+			dismissDialog(0);
 		} else {
 			System.out.println("mediaplayer.onseekcomplete出错了");
-			pDialog.cancel();
+			dismissDialog(0);
 		}
 
 	}
@@ -300,59 +323,29 @@ public class MediaPlayerShow extends Activity implements
 	public void onPrepared(MediaPlayer mp) {
 		videoWidth = mp.getVideoWidth();
 		videoHeight = mp.getVideoHeight();
-		if (videoWidth > currentDisplay.getWidth()
-				|| videoHeight > currentDisplay.getHeight()) {
-			float heightRatio = (float) videoHeight
-					/ (float) currentDisplay.getHeight();
-			float widthRatio = (float) videoWidth
-					/ (float) currentDisplay.getWidth();
+		if (videoWidth > currentDisplay.getWidth()|| videoHeight > currentDisplay.getHeight()) {
+			float heightRatio = (float) videoHeight/ (float) currentDisplay.getHeight();
+			float widthRatio = (float) videoWidth/ (float) currentDisplay.getWidth();
 			if (heightRatio > 1 || widthRatio > 1) {
 				if (heightRatio > widthRatio) {
-					videoHeight = (int) Math.ceil((float) videoHeight
-							/ (float) heightRatio);
-					videoWidth = (int) Math.ceil((float) videoWidth
-							/ (float) heightRatio);
+					videoHeight = (int) Math.ceil((float) videoHeight/ (float) heightRatio);
+					videoWidth = (int) Math.ceil((float) videoWidth/ (float) heightRatio);
 				} else {
-					videoHeight = (int) Math.ceil((float) videoHeight
-							/ (float) widthRatio);
-					videoWidth = (int) Math.ceil((float) videoWidth
-							/ (float) widthRatio);
+					videoHeight = (int) Math.ceil((float) videoHeight/ (float) widthRatio);
+					videoWidth = (int) Math.ceil((float) videoWidth/ (float) widthRatio);
 				}
 			}
-			surfaceView.setLayoutParams(new LinearLayout.LayoutParams(
-					videoWidth, videoHeight));
+			surfaceView.setLayoutParams(new LinearLayout.LayoutParams(videoWidth, videoHeight));
 		} else {
 			surfaceHolder.setFixedSize(videoWidth, videoHeight);
 		}
 		controller.setMediaPlayer(this);
-		controller.setAnchorView(this
-				.findViewById(R.id.page_playershow_mainview));
+		controller.setAnchorView(this.findViewById(R.id.page_playershow_mainview));
 		controller.setEnabled(true);
 		controller.show();
-		pDialog.cancel();
-		if (isContinue) {
-			AlertDialog dialog = new AlertDialog.Builder(this).create();
-			dialog.setMessage("是否从上次中断处继续播放？");
-			dialog.setButton(Dialog.BUTTON_POSITIVE, "继续上次播放",
-					new DialogInterface.OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							mediaPlayer.seekTo(contiuePosition);
-						}
-					});
-			dialog.setButton(Dialog.BUTTON_NEGATIVE, "从头播放",
-					new DialogInterface.OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							mediaPlayer.seekTo(0);
-						}
-					});
-			dialog.show();
-		}
+		dismissDialog(0);
 		mediaPlayer.start();
-		Intent i = new Intent("com.rushfusion.matshow");
+		Intent i = new Intent(ACTION);
 		i.putExtra("cmd", "state");
 		i.putExtra("isPlaying", true);
 		sendBroadcast(i);
@@ -363,7 +356,7 @@ public class MediaPlayerShow extends Activity implements
 		if (mediaPlayer != null) {
 			mediaPlayer.release();
 		}
-		Intent i = new Intent("com.rushfusion.matshow");
+		Intent i = new Intent(ACTION);
 		i.putExtra("cmd", "state");
 		i.putExtra("isPlaying", false);
 		sendBroadcast(i);
@@ -395,7 +388,7 @@ public class MediaPlayerShow extends Activity implements
 
 	@Override
 	public boolean onError(MediaPlayer mp, int what, int extra) {
-		// Toast.makeText(this, "错误代码："+what , 500).show();
+		 Toast.makeText(this, "错误代码："+what , 500).show();
 		switch (what) {
 		case MediaPlayer.MEDIA_ERROR_UNKNOWN:
 			Toast.makeText(this, "网络连接出现错误，请稍后再试！", 1000).show();

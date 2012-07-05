@@ -24,13 +24,14 @@ import com.rushfusion.matservice.util.MscpDataParser;
 
 public class MATService extends Service {
 
-	public static String ACTION = "com.rushfusion.matservice";
+	public static final String ACTION = "com.rushfusion.matservice";
+	
 	private static final int PORT = 6806;
 	private static final String TAG = "MATService";
 	private DatagramSocket s = null;
 	private String mIp;
 	private String preUrl = "";
-	
+	private String IP;
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -68,6 +69,9 @@ public class MATService extends Service {
 				isPlaying = false;
 			}else if(cmd.equals("state")){
 				isPlaying = intent.getBooleanExtra("isPlaying", false);
+			}else if(cmd.equals("state-duration")){
+				int pos = intent.getIntExtra("pos", 0);
+				responseTo(IP,ConstructResponseData.SeekResp(mIp,pos));
 			}
 		}
 	};
@@ -114,22 +118,22 @@ public class MATService extends Service {
 										HashMap<String, String> map) {
 									if (map != null) {
 										String req = map.get("cmd");
-										String IP = map.get("IP");
+										IP = map.get("IP");
 										if(req.equals("searchreq")){
-											Log.d(TAG, "response searchreq-->");
+											Log.d(TAG, "receive searchreq-->");
 											responseTo(IP,ConstructResponseData.SearchResponse(0, mIp));
 										}else if(req.equals("playreq")){
-											Log.d(TAG, "receive play url-->"+map.get("url"));
+											Log.d(TAG, "receive playreq url-->"+map.get("url"));
 											String url = map.get("url");
 											Log.d(TAG, "isPlaying---->"+isPlaying);
 											if(isPlaying){
 												if(preUrl.equals(url)){
-													Intent i = new Intent("com.rushfusion.matservice");
+													Intent i = new Intent(ACTION);
 													i.putExtra("cmd", "resume");
 													sendBroadcast(i);
 												}else{
 													preUrl = url;
-													Intent i = new Intent("com.rushfusion.matservice");
+													Intent i = new Intent(ACTION);
 													i.putExtra("cmd", "reset");
 													i.putExtra("url", url);
 													sendBroadcast(i);
@@ -138,17 +142,21 @@ public class MATService extends Service {
 												doPlay(map, url);
 											}
 										}else if(req.equals("pausereq")){
-											Log.d(TAG, "receive pause-->");
-											Intent i = new Intent("com.rushfusion.matservice");
+											Log.d(TAG, "receive pausereq-->");
+											Intent i = new Intent(ACTION);
 											i.putExtra("cmd", "pause");
 											sendBroadcast(i);
 										}else if(req.equals("stopreq")){
-											Log.d(TAG, "receive stop-->");
-											Intent i = new Intent("com.rushfusion.matservice");
+											Log.d(TAG, "receive stopreq-->");
+											Intent i = new Intent(ACTION);
 											i.putExtra("cmd", "stop");
 											sendBroadcast(i);
-										}else if(req.equals("")){
-											
+										}else if(req.equals("seekreq")){
+											Log.d(TAG, "receive seekreq-->"+map.get("pos"));
+											Intent i = new Intent(ACTION);
+											i.putExtra("cmd", "seek");
+											i.putExtra("pos", Integer.parseInt(map.get("pos")));
+											sendBroadcast(i);
 										}
 										
 									}
@@ -182,6 +190,7 @@ public class MATService extends Service {
 	}
 
 	protected void responseTo(String destip,byte[] data) {
+		Log.d(TAG, "responseTo-->"+destip);
 		InetAddress IP;
 		try {
 			IP = InetAddress.getByName(destip);
