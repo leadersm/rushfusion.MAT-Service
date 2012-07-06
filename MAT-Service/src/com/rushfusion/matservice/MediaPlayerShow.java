@@ -1,14 +1,10 @@
 package com.rushfusion.matservice;
 
-import java.io.IOException;
-
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaPlayer;
@@ -26,8 +22,6 @@ import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.MediaController.MediaPlayerControl;
@@ -58,7 +52,7 @@ public class MediaPlayerShow extends Activity implements
 		public void onReceive(Context context, Intent intent) {
 			// TODO Auto-generated method stub
 			String cmd = intent.getStringExtra("cmd");
-			Log.d("MATService","onReceive cmd--->" + cmd);
+			Log.d(MATService.TAG,"onReceive cmd--->" + cmd);
 			if (cmd.equals("pause")) {
 				pause();
 			} else if (cmd.equals("stop")) {
@@ -69,25 +63,23 @@ public class MediaPlayerShow extends Activity implements
 				sendBroadcast(i);
 				finish();
 			} else if(cmd.equals("resume")){
-				mediaPlayer.start();
+				if(!mediaPlayer.isPlaying()){
+					mediaPlayer.start();
+				}else Log.d(MATService.TAG, "该视频已经在播放了。。。");
 				Intent i = new Intent(ACTION);
 				i.putExtra("cmd", "state");
 				i.putExtra("isPlaying", true);
 				sendBroadcast(i);
 			} else if(cmd.equals("reset")){
-				mediaPlayer.stop();
-				mediaPlayer.reset();
-				mediaPlayer.release();
-				initMediaPlayer();
-				String url = intent.getStringExtra("url");
 				try {
+					mediaPlayer.stop();
+					mediaPlayer.reset();
+					mediaPlayer.release();
+					initMediaPlayer();
+					String url = intent.getStringExtra("url");
 					mediaPlayer.setDataSource(url);
-					mediaPlayer.prepare();
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-				} catch (IllegalStateException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
+					mediaPlayer.prepareAsync();
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}else if(cmd.equals("seek")){
@@ -103,6 +95,7 @@ public class MediaPlayerShow extends Activity implements
 		}
 	};
 
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -113,41 +106,26 @@ public class MediaPlayerShow extends Activity implements
         Intent i = getIntent();
         String cmd = i.getStringExtra("cmd");
         
-		surfaceHolder = surfaceView.getHolder();
-		surfaceHolder.addCallback(this);
-		surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-		
 		initMediaPlayer();
 		
 		title = i.getStringExtra("title");
+		String url = i.getStringExtra("url");
 		try {
 			if(cmd.equals("play")){
-	        	String url = i.getStringExtra("url");
 	        	mediaPlayer.setDataSource(url);
 	        }
-		} catch (IllegalArgumentException e) {
-			System.out.println("mediaplayer 设置数据中出错，错误信息：" + e.toString());
-		} catch (IllegalStateException e) {
-			System.out.println("mediaplayer 设置数据中出错，错误信息：" + e.toString());
-		} catch (IOException e) {
+		} catch (Exception e) {
 			System.out.println("mediaplayer 设置数据中出错，错误信息：" + e.toString());
 		}
 		currentDisplay = getWindowManager().getDefaultDisplay();
 		controller = new MediaController(this, false);
-		surfaceView.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				if (controller.isShowing()) {
-					controller.hide();
-				} else {
-					controller.show();
-				}
-			}
-		});
 	}
 
 	private void initMediaPlayer() {
+		showDialog(0);	
+		surfaceHolder = surfaceView.getHolder();
+		surfaceHolder.addCallback(this);
+		surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		mediaPlayer = new MediaPlayer();
 		mediaPlayer.setOnCompletionListener(this);
 		mediaPlayer.setOnErrorListener(this);
@@ -156,7 +134,6 @@ public class MediaPlayerShow extends Activity implements
 		mediaPlayer.setOnSeekCompleteListener(this);
 		mediaPlayer.setOnVideoSizeChangedListener(this);
 		mediaPlayer.setOnBufferingUpdateListener(this);
-		showDialog(0);	
 	}
 
 	@Override
@@ -272,7 +249,6 @@ public class MediaPlayerShow extends Activity implements
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		if (mediaPlayer != null) {
-			// saveTime = mediaPlayer.getCurrentPosition();
 			mediaPlayer.release();
 		}
 	}
@@ -388,29 +364,15 @@ public class MediaPlayerShow extends Activity implements
 
 	@Override
 	public boolean onError(MediaPlayer mp, int what, int extra) {
-		 Toast.makeText(this, "错误代码："+what , 500).show();
-		switch (what) {
-		case MediaPlayer.MEDIA_ERROR_UNKNOWN:
-			Toast.makeText(this, "网络连接出现错误，请稍后再试！", 1000).show();
-			finish();
-			break;
-		case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-			Toast.makeText(this, "网络连接出现错误，请稍后再试！", 1000).show();
-			finish();
-			break;
-		case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
-			Toast.makeText(this, "网络连接出现错误，请稍后再试！", 1000).show();
-			finish();
-			break;
-		}
+		Toast.makeText(this, "错误代码："+what , 500).show();
+		finish();
 		return true;
 	}
 
 	@Override
 	public void onCompletion(MediaPlayer arg0) {
-
 		Toast.makeText(this, "播放完毕", 500).show();
-		// finish();
+		finish();
 	}
 
 	@Override

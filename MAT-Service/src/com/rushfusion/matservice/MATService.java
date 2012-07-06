@@ -27,7 +27,7 @@ public class MATService extends Service {
 	public static final String ACTION = "com.rushfusion.matservice";
 	
 	private static final int PORT = 6806;
-	private static final String TAG = "MATService";
+	public static final String TAG = "MATService";
 	private DatagramSocket s = null;
 	private String mIp;
 	private String preUrl = "";
