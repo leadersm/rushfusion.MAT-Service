@@ -35,7 +35,7 @@
             android:launchMode="singleInstance" >
         </activity>
 
-        <receiver android:name="com.rushfusion.receiver.BootReceiver" >
+        <receiver android:name="com.rushfusion.matservice.BootReceiver" >
             <intent-filter android:priority="8888" >
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
 
