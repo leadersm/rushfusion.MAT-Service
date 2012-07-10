@@ -16,6 +16,8 @@ import android.media.MediaPlayer.OnPreparedListener;
 import android.media.MediaPlayer.OnSeekCompleteListener;
 import android.media.MediaPlayer.OnVideoSizeChangedListener;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
@@ -45,68 +47,83 @@ public class MediaPlayerShow extends Activity implements
 	int contiuePosition = 0;
 	String title;
 	int saveTime = 0;
+	
+	Handler h = new Handler(){
 
+		@Override
+		public void handleMessage(Message msg) {
+			super.handleMessage(msg);
+			switch (msg.what) {
+			case 0:
+				Intent intent = (Intent) msg.obj;
+				String cmd = intent.getStringExtra("cmd");
+				Log.d(MATService.TAG,"onReceive cmd--->" + cmd);
+				if (cmd.equals("pause")) {
+					if(controller!=null)controller.show();
+					pause();
+				} else if (cmd.equals("stop")) {
+//					if(isRegisted)unregisterReceiver(br);
+					finish();
+				} else if(cmd.equals("resume")){
+					if(controller!=null)controller.show();
+					if(!mediaPlayer.isPlaying()){
+						mediaPlayer.start();
+					}else Log.d(MATService.TAG, "该视频已经在播放了。。。");
+					Intent i = new Intent(ACTION);
+					i.putExtra("cmd", "state");
+					i.putExtra("isPlaying", true);
+					sendBroadcast(i);
+				}else if(cmd.equals("seek")){
+					if(controller!=null)controller.show();
+					int pos = intent.getIntExtra("pos", 0);
+					try {
+						if(mediaPlayer!=null&&isPrepared){
+							mediaPlayer.seekTo(mediaPlayer.getDuration()*pos/100);
+							Intent i = new Intent(ACTION);
+							i.putExtra("cmd", "state-duration");
+							i.putExtra("pos", mediaPlayer.getCurrentPosition());
+							sendBroadcast(i);
+						}
+					} catch (Exception e) {
+						// TODO: handle exception
+						finish();
+					}
+				}
+				
+				break;
+
+			default:
+				break;
+			}
+			
+		}
+	};
+	
 	BroadcastReceiver br = new BroadcastReceiver() {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			// TODO Auto-generated method stub
-			String cmd = intent.getStringExtra("cmd");
-			Log.d(MATService.TAG,"onReceive cmd--->" + cmd);
-			if (cmd.equals("pause")) {
-				pause();
-			} else if (cmd.equals("stop")) {
-				dismissDialog(0);
-				mediaPlayer.stop();
-				Intent i = new Intent(ACTION);
-				i.putExtra("cmd","release");
-				sendBroadcast(i);
-				finish();
-			} else if(cmd.equals("resume")){
-				if(!mediaPlayer.isPlaying()){
-					mediaPlayer.start();
-				}else Log.d(MATService.TAG, "该视频已经在播放了。。。");
-				Intent i = new Intent(ACTION);
-				i.putExtra("cmd", "state");
-				i.putExtra("isPlaying", true);
-				sendBroadcast(i);
-			} else if(cmd.equals("reset")){
-				try {
-					mediaPlayer.stop();
-					mediaPlayer.reset();
-					mediaPlayer.release();
-					initMediaPlayer();
-					String url = intent.getStringExtra("url");
-					mediaPlayer.setDataSource(url);
-					mediaPlayer.prepareAsync();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}else if(cmd.equals("seek")){
-				int pos = intent.getIntExtra("pos", 0);
-				if(mediaPlayer!=null)
-					mediaPlayer.seekTo(mediaPlayer.getDuration()*pos/100);
-				
-				Intent i = new Intent(ACTION);
-				i.putExtra("cmd", "state-duration");
-				i.putExtra("pos", mediaPlayer.getCurrentPosition());
-				sendBroadcast(i);
-			}
+			Message msg = new Message();
+			msg.what = 0;
+			msg.obj = intent;
+			h.sendMessageDelayed(msg, 100);
 		}
 	};
 
+	boolean isPrepared = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.playershow);
 		surfaceView = (SurfaceView) findViewById(R.id.page_playershow_surfaceview);
+		registeBR();
 
-		registerReceiver(br, new IntentFilter("com.rushfusion.matservice"));
         Intent i = getIntent();
         String cmd = i.getStringExtra("cmd");
         
-		initMediaPlayer();
+        initMediaPlayer();
 		
 		title = i.getStringExtra("title");
 		String url = i.getStringExtra("url");
@@ -121,8 +138,15 @@ public class MediaPlayerShow extends Activity implements
 		controller = new MediaController(this, false);
 	}
 
+	
+	private void registeBR() {
+		registerReceiver(br, new IntentFilter("com.rushfusion.matservice"));
+		br.setOrderedHint(true);
+		Log.d("MAT-Service", "onCreate registerReceiver");
+	}
+
 	private void initMediaPlayer() {
-		showDialog(0);	
+		showDialog(0);
 		surfaceHolder = surfaceView.getHolder();
 		surfaceHolder.addCallback(this);
 		surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
@@ -153,41 +177,58 @@ public class MediaPlayerShow extends Activity implements
 
 	@Override
 	public int getCurrentPosition() {
-		if (mediaPlayer != null) {
-			if (mediaPlayer.isPlaying()) {
-				saveTime = mediaPlayer.getCurrentPosition();
-				return saveTime;
-			} else {
-				return saveTime;
+		try {
+			if (mediaPlayer != null) {
+				if (mediaPlayer.isPlaying()) {
+					saveTime = mediaPlayer.getCurrentPosition();
+					return saveTime;
+				} else {
+					return saveTime;
+				}
 			}
+		} catch (Exception e) {
+			// TODO: handle exception
 		}
 		return 0;
 	}
 
 	@Override
 	public int getDuration() {
-		if (mediaPlayer != null) {
-			if (mediaPlayer.isPlaying()) {
-				return mediaPlayer.getDuration();
-			} else {
-				return 0;
+		try {
+			if (mediaPlayer != null) {
+				if (mediaPlayer.isPlaying()) {
+					return mediaPlayer.getDuration();
+				} else {
+					return 0;
+				}
 			}
+		} catch (Exception e) {
+			// TODO: handle exception
 		}
 		return 0;
 	}
 
 	@Override
 	public boolean isPlaying() {
-		if (mediaPlayer != null) {
-			return mediaPlayer.isPlaying();
+		try {
+			if (mediaPlayer != null) {
+				return mediaPlayer.isPlaying();
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
 		}
 		return false;
 	}
 
 	@Override
 	public void pause() {
-		if (mediaPlayer.isPlaying()) {
-			mediaPlayer.pause();
+		try{
+			if (mediaPlayer.isPlaying()) {
+				mediaPlayer.pause();
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			finish();
 		}
 	}
 
@@ -223,8 +264,8 @@ public class MediaPlayerShow extends Activity implements
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		mediaPlayer.setDisplay(holder);
 		try {
+			mediaPlayer.setDisplay(holder);
 			mediaPlayer.prepareAsync();
 		} catch (IllegalStateException e) {
 			System.out.println("surface准备中出错 ，错误信息 ：" + e.toString());
@@ -236,7 +277,7 @@ public class MediaPlayerShow extends Activity implements
 		switch (id) {
 		case 0:
 			ProgressDialog dialog = new ProgressDialog(this);
-			dialog.setMessage("视频加载中，请稍后");
+			dialog.setMessage("视频加载中，请稍后...");
 			dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 			return dialog;
 		default:
@@ -285,7 +326,6 @@ public class MediaPlayerShow extends Activity implements
 
 	@Override
 	public void onSeekComplete(MediaPlayer mp) {
-
 		if (mediaPlayer != null) {
 			dismissDialog(0);
 		} else {
@@ -325,6 +365,7 @@ public class MediaPlayerShow extends Activity implements
 		i.putExtra("cmd", "state");
 		i.putExtra("isPlaying", true);
 		sendBroadcast(i);
+		isPrepared = true;
 	}
 
 	@Override
@@ -366,12 +407,17 @@ public class MediaPlayerShow extends Activity implements
 	public boolean onError(MediaPlayer mp, int what, int extra) {
 		Toast.makeText(this, "错误代码："+what , 500).show();
 		finish();
+//		if(isRegisted)unregisterReceiver(br);
 		return true;
 	}
 
 	@Override
 	public void onCompletion(MediaPlayer arg0) {
+//		if(isRegisted)unregisterReceiver(br);
 		Toast.makeText(this, "播放完毕", 500).show();
+		Intent i = new Intent(ACTION);
+		i.putExtra("cmd", "state-complete");
+		sendBroadcast(i);
 		finish();
 	}
 
@@ -419,8 +465,18 @@ public class MediaPlayerShow extends Activity implements
 
 	@Override
 	protected void onStop() {
-		unregisterReceiver(br);
+		// TODO Auto-generated method stub
+		try{
+			unregisterReceiver(br);
+			Log.d("MAT-Service", "onStop  unregisterReceiver");
+		}catch (Exception e) {
+			// TODO: handle exception
+			Log.d("MATService", e.getMessage());
+		}
 		super.onStop();
 	}
+
+	
+	
 	
 }

@@ -72,6 +72,8 @@ public class MATService extends Service {
 			}else if(cmd.equals("state-duration")){
 				int pos = intent.getIntExtra("pos", 0);
 				responseTo(IP,ConstructResponseData.SeekResp(mIp,pos));
+			}else if(cmd.equals("state-complete")){
+				responseTo(IP, ConstructResponseData.CompleteResp(mIp));
 			}
 		}
 	};
@@ -128,15 +130,23 @@ public class MATService extends Service {
 											Log.d(TAG, "isPlaying---->"+isPlaying);
 											if(isPlaying){
 												if(preUrl.equals(url)){
+													Log.d(TAG, "---->the url is playing,do resume<----");
 													Intent i = new Intent(ACTION);
 													i.putExtra("cmd", "resume");
 													sendBroadcast(i);
 												}else{
+													Log.d(TAG, "---->the url is NOT playing,do play<----");
 													preUrl = url;
 													Intent i = new Intent(ACTION);
-													i.putExtra("cmd", "reset");
-													i.putExtra("url", url);
+													i.putExtra("cmd", "stop");//reset
+//													i.putExtra("url", url);
 													sendBroadcast(i);
+													try {
+														Thread.sleep(200);
+														doPlay(map, url);
+													} catch (InterruptedException e) {
+														e.printStackTrace();
+													}
 												}
 											}else{
 												doPlay(map, url);
