@@ -15,6 +15,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
@@ -32,6 +33,7 @@ public class MATService extends Service {
 	private String mIp;
 	private String preUrl = "";
 	private String IP;
+	private String stbName = "";
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -46,6 +48,7 @@ public class MATService extends Service {
 		try {
 			s = new DatagramSocket(PORT);
 			mIp = getLocalIpAddress();
+			stbName = getDeviceName();
 			if(mIp==null){
 				Toast.makeText(this, "网络异常,无法获取ip..", 1).show();
 				return;
@@ -61,6 +64,12 @@ public class MATService extends Service {
 	}
 	
 	private boolean isPlaying = false;
+	
+	private String getDeviceName(){
+		String model = Build.MODEL;
+		Log.d(TAG, "getDeviceName--->"+model);
+        return model;
+	}
 	
 	BroadcastReceiver r = new BroadcastReceiver() {
 		
@@ -151,7 +160,7 @@ public class MATService extends Service {
 										IP = map.get("IP");
 										if(req.equals("searchreq")){
 											Log.d(TAG, "receive searchreq-->");
-											responseTo(IP,ConstructResponseData.SearchResponse(0, mIp));
+											responseTo(IP,ConstructResponseData.SearchResponse(0, stbName,mIp));
 										}else if(req.equals("playreq")){
 											Log.d(TAG, "receive playreq url-->"+map.get("url"));
 											String url = map.get("url");

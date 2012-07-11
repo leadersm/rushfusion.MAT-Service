@@ -4,12 +4,13 @@ public class ConstructResponseData {
 
 	public static final int STB_PORT = 6806;
 
-	public static byte[] SearchResponse(int taskno, String ip) {
+	public static byte[] SearchResponse(int taskno, String stbname,String ip) {
 		String xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
 				+ "<Package> "
 				+ "<Property  name = 'cmd' vaule = 'searchresp' /> "
 				+ "<Property  name = 'taskno' vaule = '" + taskno + "' /> "
 				+ "<Property  name = 'IP' vaule = '" + ip + "' /> "
+				+ "<Property  name = 'username' vaule = '" + stbname + "' /> "
 				+ "<Property  name = 'port' vaule = '" + STB_PORT + "' /> "
 				+ "</Package>";
 

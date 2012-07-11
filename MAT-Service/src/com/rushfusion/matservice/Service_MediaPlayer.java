@@ -62,7 +62,6 @@ public class Service_MediaPlayer extends Activity implements
 					if(controller!=null)controller.show();
 					pause();
 				} else if (cmd.equals("stop")) {
-//					if(isRegisted)unregisterReceiver(br);
 					finish();
 				} else if(cmd.equals("resume")){
 					if(controller!=null)controller.show();
@@ -142,7 +141,7 @@ public class Service_MediaPlayer extends Activity implements
 	private void registeBR() {
 		registerReceiver(br, new IntentFilter("com.rushfusion.matservice"));
 		br.setOrderedHint(true);
-		Log.d("MAT-Service", "onCreate registerReceiver");
+		Log.d("MATService", "onCreate registerReceiver");
 	}
 
 	private void initMediaPlayer() {
@@ -240,7 +239,7 @@ public class Service_MediaPlayer extends Activity implements
 			showDialog(0);
 			mediaPlayer.seekTo(pos);
 		} else {
-			System.out.println("mediaplayer.seekto 出错了！");
+			Log.d(MATService.TAG,"mediaplayer.seekto 出错了！");
 			finish();
 		}
 
@@ -251,7 +250,7 @@ public class Service_MediaPlayer extends Activity implements
 		if (mediaPlayer != null) {
 			mediaPlayer.start();
 		} else {
-			System.out.println("mediaplayer.start 出错了！");
+			Log.d(MATService.TAG,"mediaplayer.start 出错了！");
 			finish();
 		}
 	}
@@ -268,7 +267,7 @@ public class Service_MediaPlayer extends Activity implements
 			mediaPlayer.setDisplay(holder);
 			mediaPlayer.prepareAsync();
 		} catch (IllegalStateException e) {
-			System.out.println("surface准备中出错 ，错误信息 ：" + e.toString());
+			Log.d(MATService.TAG,"surface准备中出错 ，错误信息 ：" + e.toString());
 		}
 	}
 
@@ -329,7 +328,7 @@ public class Service_MediaPlayer extends Activity implements
 		if (mediaPlayer != null) {
 			dismissDialog(0);
 		} else {
-			System.out.println("mediaplayer.onseekcomplete出错了");
+			Log.d(MATService.TAG,"mediaplayer.onseekcomplete出错了");
 			dismissDialog(0);
 		}
 
@@ -388,16 +387,16 @@ public class Service_MediaPlayer extends Activity implements
 	public boolean onInfo(MediaPlayer mp, int what, int extra) {
 		switch (what) {
 		case MediaPlayer.MEDIA_INFO_BAD_INTERLEAVING:
-			System.out.println("音视频交叉错误");
+			Log.d(MATService.TAG,"音视频交叉错误");
 			break;
 		case MediaPlayer.MEDIA_INFO_METADATA_UPDATE:
-			System.out.println("原资料更新");
+			Log.d(MATService.TAG,"原资料更新");
 			break;
 		case MediaPlayer.MEDIA_INFO_NOT_SEEKABLE:
-			System.out.println("该视频类型，无法定位");
+			Log.d(MATService.TAG,"该视频类型，无法定位");
 			break;
 		case MediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING:
-			System.out.println("音视频交叉错误");
+			Log.d(MATService.TAG,"音视频交叉错误");
 			break;
 		}
 		return true;
@@ -406,14 +405,13 @@ public class Service_MediaPlayer extends Activity implements
 	@Override
 	public boolean onError(MediaPlayer mp, int what, int extra) {
 		Toast.makeText(this, "错误代码："+what , 500).show();
+		Log.d(MATService.TAG,"onError error -->"+what);
 		finish();
-//		if(isRegisted)unregisterReceiver(br);
 		return true;
 	}
 
 	@Override
 	public void onCompletion(MediaPlayer arg0) {
-//		if(isRegisted)unregisterReceiver(br);
 		Toast.makeText(this, "播放完毕", 500).show();
 		Intent i = new Intent(ACTION);
 		i.putExtra("cmd", "state-complete");
@@ -468,10 +466,10 @@ public class Service_MediaPlayer extends Activity implements
 		// TODO Auto-generated method stub
 		try{
 			unregisterReceiver(br);
-			Log.d("MAT-Service", "onStop  unregisterReceiver");
+			Log.d(MATService.TAG,"onStop  unregisterReceiver");
 		}catch (Exception e) {
 			// TODO: handle exception
-			Log.d("MATService", e.getMessage());
+			Log.d(MATService.TAG,e.getMessage());
 		}
 		super.onStop();
 	}
