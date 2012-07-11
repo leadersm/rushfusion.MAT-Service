@@ -8,6 +8,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
         android:icon="@drawable/ic_launcher"
@@ -27,11 +28,11 @@
         </service>
 
         <activity
-            android:name=".MediaPlayerShow"
+            android:name=".Service_MediaPlayer"
             android:launchMode="singleInstance" >
         </activity>
         <activity
-            android:name=".PlayActivity"
+            android:name=".Service_WebViewPlayer"
             android:launchMode="singleInstance" >
         </activity>
 

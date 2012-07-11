@@ -12,7 +12,7 @@ import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Bundle;
 import android.widget.VideoView;
 
-public class PlayActivity extends Activity {
+public class Service_VideoView extends Activity {
 	VideoView v;
 	BroadcastReceiver br = new BroadcastReceiver() {
 

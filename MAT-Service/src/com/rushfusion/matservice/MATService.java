@@ -15,9 +15,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.rushfusion.matservice.util.ConstructResponseData;
 import com.rushfusion.matservice.util.MscpDataParser;
@@ -46,8 +46,13 @@ public class MATService extends Service {
 		try {
 			s = new DatagramSocket(PORT);
 			mIp = getLocalIpAddress();
+			if(mIp==null){
+				Toast.makeText(this, "网络异常,无法获取ip..", 1).show();
+				return;
+			}
 			Thread mReceiveThread = new Thread(receiveRunnable);
 			mReceiveThread.start();
+			Log.d(TAG, "service ip-->"+mIp);
 			registerReceiver(r, new IntentFilter("com.rushfusion.matshow"));
 		} catch (SocketException e) {
 			e.printStackTrace();
@@ -78,17 +83,40 @@ public class MATService extends Service {
 		}
 	};
 	
+//	public String getLocalIpAddress() {
+//		try {
+//			for (Enumeration<NetworkInterface> en = NetworkInterface
+//					.getNetworkInterfaces(); en.hasMoreElements();) {
+//				NetworkInterface intf = en.nextElement();
+//				for (Enumeration<InetAddress> enumIpAddr = intf
+//						.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+//					InetAddress inetAddress = enumIpAddr.nextElement();
+//					if (!inetAddress.isLoopbackAddress()) {
+//						return inetAddress.getHostAddress().toString();
+//					}
+//				}
+//			}
+//		} catch (SocketException ex) {
+//			ex.printStackTrace();
+//		}
+//		return null;
+//	}
+	
 	public String getLocalIpAddress() {
 		try {
-			for (Enumeration<NetworkInterface> en = NetworkInterface
-					.getNetworkInterfaces(); en.hasMoreElements();) {
+			for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
 				NetworkInterface intf = en.nextElement();
-				for (Enumeration<InetAddress> enumIpAddr = intf
-						.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+				for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses();
+						enumIpAddr.hasMoreElements();) {
 					InetAddress inetAddress = enumIpAddr.nextElement();
-					if (!inetAddress.isLoopbackAddress()) {
-						return inetAddress.getHostAddress().toString();
-					}
+					String s = inetAddress.getHostAddress().toString();
+//					if (!inetAddress.isLoopbackAddress()) {
+//						return s;
+//					}
+					if(s.indexOf(":")==-1 && !(s.equals("127.0.0.1"))){
+		        		return s;
+		        	}
+					
 				}
 			}
 		} catch (SocketException ex) {
@@ -174,10 +202,13 @@ public class MATService extends Service {
 								private void doPlay(HashMap<String, String> map, String url) {
 									preUrl = url;
 									if(url.indexOf("html")==(url.length()-4)){
-										Intent it = new Intent(Intent.ACTION_VIEW , Uri.parse(url));
-										startActivity(it);
+										Log.d(TAG, "------------> flash <-----------");
+										Intent i = new Intent(getApplicationContext(),Service_WebViewPlayer.class);
+										i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+										i.putExtra("url", url);
+										startActivity(i);
 									}else {
-										Intent i = new Intent(getApplicationContext(),MediaPlayerShow.class);
+										Intent i = new Intent(getApplicationContext(),Service_MediaPlayer.class);
 										i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 										i.putExtra("cmd", "play");
 										i.putExtra("url", url);

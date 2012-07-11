@@ -29,7 +29,7 @@ import android.widget.MediaController;
 import android.widget.MediaController.MediaPlayerControl;
 import android.widget.Toast;
 
-public class MediaPlayerShow extends Activity implements
+public class Service_MediaPlayer extends Activity implements
 		OnBufferingUpdateListener, OnVideoSizeChangedListener,
 		OnCompletionListener, OnErrorListener, OnInfoListener,
 		OnPreparedListener, OnSeekCompleteListener, Callback,
@@ -476,7 +476,7 @@ public class MediaPlayerShow extends Activity implements
 		super.onStop();
 	}
 
-	
+
 	
 	
 }
