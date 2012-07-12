@@ -39,7 +39,6 @@
         <receiver android:name="com.rushfusion.matservice.BootReceiver" >
             <intent-filter android:priority="8888" >
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </receiver>
