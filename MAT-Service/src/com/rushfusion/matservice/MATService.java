@@ -54,6 +54,7 @@ public class MATService extends Service {
 				return;
 			}
 			Thread mReceiveThread = new Thread(receiveRunnable);
+			mReceiveThread.setPriority(7);
 			mReceiveThread.start();
 			Log.d(TAG, "service ip-->"+mIp);
 			registerReceiver(r, new IntentFilter("com.rushfusion.matshow"));
@@ -87,29 +88,16 @@ public class MATService extends Service {
 				int pos = intent.getIntExtra("pos", 0);
 				responseTo(IP,ConstructResponseData.SeekResp(mIp,pos));
 			}else if(cmd.equals("state-complete")){
-				responseTo(IP, ConstructResponseData.CompleteResp(mIp));
+				String theIp = intent.getStringExtra("IP");
+				responseTo(theIp, ConstructResponseData.CompleteResp(mIp));
+			}else if(cmd.equals("error")){
+				String theIp = intent.getStringExtra("IP");
+				int errorCode = intent.getIntExtra("errorCode", 1);
+				responseTo(theIp,ConstructResponseData.ErrorResp(mIp,errorCode));
 			}
 		}
 	};
 	
-//	public String getLocalIpAddress() {
-//		try {
-//			for (Enumeration<NetworkInterface> en = NetworkInterface
-//					.getNetworkInterfaces(); en.hasMoreElements();) {
-//				NetworkInterface intf = en.nextElement();
-//				for (Enumeration<InetAddress> enumIpAddr = intf
-//						.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-//					InetAddress inetAddress = enumIpAddr.nextElement();
-//					if (!inetAddress.isLoopbackAddress()) {
-//						return inetAddress.getHostAddress().toString();
-//					}
-//				}
-//			}
-//		} catch (SocketException ex) {
-//			ex.printStackTrace();
-//		}
-//		return null;
-//	}
 	
 	public String getLocalIpAddress() {
 		try {
@@ -119,9 +107,6 @@ public class MATService extends Service {
 						enumIpAddr.hasMoreElements();) {
 					InetAddress inetAddress = enumIpAddr.nextElement();
 					String s = inetAddress.getHostAddress().toString();
-//					if (!inetAddress.isLoopbackAddress()) {
-//						return s;
-//					}
 					if(s.indexOf(":")==-1 && !(s.equals("127.0.0.1"))){
 		        		return s;
 		        	}
@@ -149,6 +134,7 @@ public class MATService extends Service {
 				s.receive(packet);
 				if (packet.getLength() > 0) {
 					String str = new String(buffer, 0, packet.getLength());
+					Log.i(TAG, str);
 					MscpDataParser.getInstance().init(this);
 					MscpDataParser.getInstance().parse(packet,
 							new MscpDataParser.CallBack() {
@@ -215,6 +201,8 @@ public class MATService extends Service {
 										Intent i = new Intent(getApplicationContext(),Service_WebViewPlayer.class);
 										i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 										i.putExtra("url", url);
+										i.putExtra("title", map.get("title"));
+										i.putExtra("IP", map.get("IP"));
 										startActivity(i);
 									}else {
 										Intent i = new Intent(getApplicationContext(),Service_MediaPlayer.class);
@@ -222,6 +210,7 @@ public class MATService extends Service {
 										i.putExtra("cmd", "play");
 										i.putExtra("url", url);
 										i.putExtra("title", map.get("title"));
+										i.putExtra("IP", map.get("IP"));
 										startActivity(i);
 									}
 								}
@@ -253,5 +242,12 @@ public class MATService extends Service {
 		}
 	}
 	
+	
+	@Override
+	public void onDestroy() {
+		// TODO Auto-generated method stub
+		if(s!=null)s.close();
+		super.onDestroy();
+	}
 	
 }

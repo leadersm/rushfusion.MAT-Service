@@ -47,6 +47,8 @@ public class Service_MediaPlayer extends Activity implements
 	int contiuePosition = 0;
 	String title;
 	int saveTime = 0;
+	Dialog pDialog;
+	
 	
 	Handler h = new Handler(){
 
@@ -73,11 +75,15 @@ public class Service_MediaPlayer extends Activity implements
 					i.putExtra("isPlaying", true);
 					sendBroadcast(i);
 				}else if(cmd.equals("seek")){
-					if(controller!=null)controller.show();
+					if(controller!=null&&!controller.isShown())controller.show();
+					
+//					if(pDialog!=null&&!pDialog.isShowing())pDialog.show();
+					
 					int pos = intent.getIntExtra("pos", 0);
 					try {
 						if(mediaPlayer!=null&&isPrepared){
-							mediaPlayer.seekTo(mediaPlayer.getDuration()*pos/100);
+//							mediaPlayer.seekTo(mediaPlayer.getDuration()*pos/100);
+							seekTo(mediaPlayer.getDuration()*pos/100);
 							Intent i = new Intent(ACTION);
 							i.putExtra("cmd", "state-duration");
 							i.putExtra("pos", mediaPlayer.getCurrentPosition());
@@ -112,16 +118,21 @@ public class Service_MediaPlayer extends Activity implements
 
 	boolean isPrepared = false;
 	
+	String IP ;//who started this page;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.playershow);
 		surfaceView = (SurfaceView) findViewById(R.id.page_playershow_surfaceview);
+		pDialog = createDialog();
 		registeBR();
 
         Intent i = getIntent();
         String cmd = i.getStringExtra("cmd");
-        
+        String title = i.getStringExtra("title");
+        IP = i.getStringExtra("IP");
+        Log.d(MATService.TAG, "cause page IP-->"+IP);
         initMediaPlayer();
 		
 		title = i.getStringExtra("title");
@@ -145,7 +156,7 @@ public class Service_MediaPlayer extends Activity implements
 	}
 
 	private void initMediaPlayer() {
-		showDialog(0);
+		if(pDialog!=null&&!pDialog.isShowing())pDialog.show();;
 		surfaceHolder = surfaceView.getHolder();
 		surfaceHolder.addCallback(this);
 		surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
@@ -203,6 +214,7 @@ public class Service_MediaPlayer extends Activity implements
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
+			finish();
 		}
 		return 0;
 	}
@@ -234,15 +246,14 @@ public class Service_MediaPlayer extends Activity implements
 	
 	@Override
 	public void seekTo(int pos) {
+		if(pDialog!=null&&!pDialog.isShowing())pDialog.show();;
 		if (mediaPlayer != null) {
 			// mediaPlayer.pause();
-			showDialog(0);
 			mediaPlayer.seekTo(pos);
 		} else {
 			Log.d(MATService.TAG,"mediaplayer.seekto 出错了！");
 			finish();
 		}
-
 	}
 
 	@Override
@@ -271,21 +282,14 @@ public class Service_MediaPlayer extends Activity implements
 		}
 	}
 
-	@Override
-	protected Dialog onCreateDialog(int id) {
-		switch (id) {
-		case 0:
-			ProgressDialog dialog = new ProgressDialog(this);
-			dialog.setMessage("视频加载中，请稍后...");
-			dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-			return dialog;
-		default:
-			break;
-		}
-		return null;
+
+	private Dialog createDialog(){
+		ProgressDialog dialog = new ProgressDialog(this);
+		dialog.setMessage("视频加载中，请稍候...");
+		dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+		return dialog;
 	}
 	
-
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		if (mediaPlayer != null) {
@@ -326,10 +330,10 @@ public class Service_MediaPlayer extends Activity implements
 	@Override
 	public void onSeekComplete(MediaPlayer mp) {
 		if (mediaPlayer != null) {
-			dismissDialog(0);
+			if(pDialog!=null&&pDialog.isShowing())pDialog.dismiss();;
 		} else {
 			Log.d(MATService.TAG,"mediaplayer.onseekcomplete出错了");
-			dismissDialog(0);
+			if(pDialog!=null&&pDialog.isShowing())pDialog.dismiss();;
 		}
 
 	}
@@ -358,7 +362,7 @@ public class Service_MediaPlayer extends Activity implements
 		controller.setAnchorView(this.findViewById(R.id.page_playershow_mainview));
 		controller.setEnabled(true);
 		controller.show();
-		dismissDialog(0);
+		if(pDialog!=null&&pDialog.isShowing())pDialog.dismiss();
 		mediaPlayer.start();
 		Intent i = new Intent(ACTION);
 		i.putExtra("cmd", "state");
@@ -372,6 +376,7 @@ public class Service_MediaPlayer extends Activity implements
 		if (mediaPlayer != null) {
 			mediaPlayer.release();
 		}
+		if(controller!=null&&controller.isShown())controller.hide();
 		Intent i = new Intent(ACTION);
 		i.putExtra("cmd", "state");
 		i.putExtra("isPlaying", false);
@@ -404,6 +409,14 @@ public class Service_MediaPlayer extends Activity implements
 
 	@Override
 	public boolean onError(MediaPlayer mp, int what, int extra) {
+		if(pDialog!=null&&pDialog.isShowing())pDialog.dismiss();
+		Intent intent = new Intent(ACTION);
+		intent.putExtra("cmd", "error");
+		intent.putExtra("errorCode", what);
+		intent.putExtra("IP", IP);
+		
+		sendBroadcast(intent);
+		
 		Toast.makeText(this, "错误代码："+what , 500).show();
 		Log.d(MATService.TAG,"onError error -->"+what);
 		finish();
@@ -415,6 +428,7 @@ public class Service_MediaPlayer extends Activity implements
 		Toast.makeText(this, "播放完毕", 500).show();
 		Intent i = new Intent(ACTION);
 		i.putExtra("cmd", "state-complete");
+		i.putExtra("IP", IP);
 		sendBroadcast(i);
 		finish();
 	}

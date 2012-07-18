@@ -39,6 +39,8 @@
         <receiver android:name="com.rushfusion.matservice.BootReceiver" >
             <intent-filter android:priority="8888" >
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.net.wifi.NETWORK_IDS_CHANGED"/>
+                <action android:name="android.net.wifi.STATE_CHANGE"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </receiver>
