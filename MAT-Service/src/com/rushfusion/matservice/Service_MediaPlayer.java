@@ -394,14 +394,15 @@ public class Service_MediaPlayer extends Activity implements
 		case MediaPlayer.MEDIA_INFO_BAD_INTERLEAVING:
 			Log.d(MATService.TAG,"音视频交叉错误");
 			break;
+		case MediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING:
+			Log.d(MATService.TAG,"音视频交叉错误");
+			break;
+		
 		case MediaPlayer.MEDIA_INFO_METADATA_UPDATE:
 			Log.d(MATService.TAG,"原资料更新");
 			break;
 		case MediaPlayer.MEDIA_INFO_NOT_SEEKABLE:
 			Log.d(MATService.TAG,"该视频类型，无法定位");
-			break;
-		case MediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING:
-			Log.d(MATService.TAG,"音视频交叉错误");
 			break;
 		}
 		return true;

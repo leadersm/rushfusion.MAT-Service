@@ -44,6 +44,7 @@ public class MATService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		registerReceiver(r, new IntentFilter("com.rushfusion.matshow"));
 		Log.d(TAG, "------------onCreate----------");
 		try {
 			s = new DatagramSocket(PORT);
@@ -51,13 +52,14 @@ public class MATService extends Service {
 			stbName = getDeviceName();
 			if(mIp==null){
 				Toast.makeText(this, "网络异常,无法获取ip..", 1).show();
-				return;
+				stopSelf();
+				return ;
 			}
+			Toast.makeText(this, "service启动,ip-->"+mIp, 1).show();
 			Thread mReceiveThread = new Thread(receiveRunnable);
 			mReceiveThread.setPriority(7);
 			mReceiveThread.start();
 			Log.d(TAG, "service ip-->"+mIp);
-			registerReceiver(r, new IntentFilter("com.rushfusion.matshow"));
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
@@ -247,6 +249,7 @@ public class MATService extends Service {
 	public void onDestroy() {
 		// TODO Auto-generated method stub
 		if(s!=null)s.close();
+		unregisterReceiver(r);
 		super.onDestroy();
 	}
 	

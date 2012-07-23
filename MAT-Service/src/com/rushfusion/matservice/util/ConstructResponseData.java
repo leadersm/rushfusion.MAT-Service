@@ -6,7 +6,7 @@ public class ConstructResponseData {
 
 	public static byte[] SearchResponse(int taskno, String stbname,String ip) {
 		String xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
-				+ "<Package> "
+				+ "<Package>"
 				+ "<Property  name = 'cmd' vaule = 'searchresp' /> "
 				+ "<Property  name = 'taskno' vaule = '" + taskno + "' /> "
 				+ "<Property  name = 'IP' vaule = '" + ip + "' /> "
