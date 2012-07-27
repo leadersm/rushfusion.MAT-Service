@@ -65,7 +65,7 @@ public class Service_MediaPlayer extends Activity implements
 	String IP;// who started this page;
 	
 	
-	boolean useHttpProxy = false;
+	boolean useHttpProxy = true;
 	// -------------------------------------------
 	MATController controller;
 	// -------------------------------------------
@@ -371,6 +371,7 @@ public class Service_MediaPlayer extends Activity implements
 		// TODO:doPlay
 		try {
 			_httpProxy = new VHttpProxyDaemon(_port);
+			_httpProxy.setBufferSize(4*1024*1024);
 			_isProxyRunning = true;
 			_httpProxy.setOnBufferingStatusListener(_bufferStatuslistener);
 			_httpProxy.enableAutoBuffering(_enableProxyAutoBuffering);
@@ -606,6 +607,10 @@ public class Service_MediaPlayer extends Activity implements
 	@Override
 	public void onBufferingUpdate(MediaPlayer mp, int percent) {
 		Log.i(MATService.TAG, "==========>onBufferingUpdate  percent:"+percent+" <==========");
+		if(!useHttpProxy){
+			_progress = percent;
+			_handler.sendEmptyMessage(UPDATE_PROGRESS);
+		}
 	}
 
 	@Override
