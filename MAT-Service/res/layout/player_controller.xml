@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/controller_bg"
+    android:focusable="true"
+    android:gravity="center_horizontal"
+    android:orientation="vertical" >
+
+    <SeekBar
+        android:id="@+id/controller_seekbar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="100"
+        android:maxHeight="10dip"
+        android:nextFocusLeft="@+id/menu_player_controller_seekbar"
+        android:nextFocusRight="@+id/menu_player_controller_seekbar"
+        android:paddingLeft="15dip"
+        android:paddingRight="15dip"
+        android:progressDrawable="@drawable/menu_player_controller_seekbar_style"
+        android:thumb="@drawable/thumb_selector"
+        android:thumbOffset="25dip" />
+
+    <RelativeLayout
+        android:id="@+id/RelativeLayout1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/controller_filename"
+            android:layout_width="400dip"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="50dip"
+            android:singleLine="true"
+            android:text="filename"
+            android:textColor="@color/white"
+            android:textSize="22dip" />
+
+        <Button
+            android:id="@+id/controller_play_pause"
+            style="@style/player_menu_btn"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginLeft="30dip"
+            android:layout_marginRight="30dip"
+            android:background="@drawable/player_play_selector" />
+
+        <Button
+            android:id="@+id/controller_next"
+            style="@style/player_menu_btn"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/controller_play_pause"
+            android:background="@drawable/player_next_selector" />
+
+        <TextView
+            android:id="@+id/controller_bps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/controller_process"
+            android:text="Kbps"
+            android:layout_marginRight="50dip"
+            android:textColor="@color/white"
+            android:textSize="22dip" />
+
+        <TextView
+            android:id="@+id/controller_process"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="30dip"
+            android:text="00:00:00/00:00:00"
+            android:textColor="@color/white"
+            android:textSize="22dip" />
+
+        <Button
+            android:id="@+id/controller_prev"
+            style="@style/player_menu_btn"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/controller_play_pause"
+            android:background="@drawable/player_previous_selector" />
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/speed_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40dip"
+            android:text="Download speed: instant"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/speed"
+            android:layout_width="60dip"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dip" />
+
+        <TextView
+            android:id="@+id/instant_speed_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dip"
+            android:text="KBps"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/total_speed_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dip"
+            android:text="average"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/avgspeed"
+            android:layout_width="60dip"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginLeft="10dip"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/avg_speed_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dip"
+            android:text="KBps"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/percent_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dip"
+            android:text="Buffer status"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/percent"
+            android:layout_width="40dip"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginLeft="10dip"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/buffer_percent_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dip"
+            android:text="%"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/bufferbytes"
+            android:layout_width="60dip"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginLeft="10dip"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/buffer_text_kb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dip"
+            android:text="KB"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+</LinearLayout>

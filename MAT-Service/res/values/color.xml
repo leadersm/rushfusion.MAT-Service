@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="bg_color">#80000000</color>
+	<color name="white">#fff</color>
+	<color name="bg">#fff</color>
+	<color name="controller_bg">#80006454</color>
+	<color name="province_bg">#b4000000</color>
+	
+	<color name="dialog_progress">#AAFF00</color>
+	<color name="dialog_msg">#00AAFF</color>
+</resources>

@@ -1,0 +1,20 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <item android:state_window_focused="false" android:state_enabled="true"
+        android:drawable="@drawable/thumb_nor" />
+    
+   <item android:state_window_focused="false" android:state_enabled="false"
+        android:drawable="@drawable/thumb_nor" />
+   
+    <item android:state_focused="true" android:state_enabled="true"
+        android:drawable="@drawable/thumb_sel" />
+    
+    <item android:state_enabled="true"
+        android:drawable="@drawable/thumb_nor" />
+    
+    <item android:state_focused="true"
+        android:drawable="@drawable/thumb_sel" />
+    
+    <item
+         android:drawable="@drawable/thumb_nor" />
+</selector>

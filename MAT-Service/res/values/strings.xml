@@ -3,5 +3,14 @@
 
     <string name="hello">Hello World, MATServiceActivity!</string>
     <string name="app_name">MAT-Service</string>
+    <string name="pause">暂停</string>
+    <string name="play">播放</string>
+    <string name="fastforward">快进</string>
+    <string name="fastbackward">快退</string>
+    <string name="next">下一节</string>
+    <string name="previous">上一节</string>
+    <string name="_3D">3D</string>
+    <string name="share">分享</string>
+    <string name="settings">设置</string>
 
 </resources>

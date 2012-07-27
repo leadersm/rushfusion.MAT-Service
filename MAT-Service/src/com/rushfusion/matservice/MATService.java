@@ -34,6 +34,8 @@ public class MATService extends Service {
 	private String preUrl = "";
 	private String IP;
 	private String stbName = "";
+	private boolean canReceive = true;
+	Thread mReceiveThread;
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -56,7 +58,7 @@ public class MATService extends Service {
 				return ;
 			}
 			Toast.makeText(this, "service启动,ip-->"+mIp, 1).show();
-			Thread mReceiveThread = new Thread(receiveRunnable);
+			mReceiveThread = new Thread(receiveRunnable);
 			mReceiveThread.setPriority(7);
 			mReceiveThread.start();
 			Log.d(TAG, "service ip-->"+mIp);
@@ -96,6 +98,10 @@ public class MATService extends Service {
 				String theIp = intent.getStringExtra("IP");
 				int errorCode = intent.getIntExtra("errorCode", 1);
 				responseTo(theIp,ConstructResponseData.ErrorResp(mIp,errorCode));
+			}else if(cmd.equals("resetnetwork")){
+				canReceive = false;
+				mReceiveThread.interrupt();
+				stopSelf();
 			}
 		}
 	};
@@ -132,8 +138,14 @@ public class MATService extends Service {
 		try {
 			byte[] buffer = new byte[1024];
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-			while (true) {
-				s.receive(packet);
+			while (canReceive) {
+				if(s.isClosed())return;
+				try {
+					s.receive(packet);
+				} catch (SocketException e) {
+					stopSelf();
+					return;
+				}
 				if (packet.getLength() > 0) {
 					String str = new String(buffer, 0, packet.getLength());
 					Log.i(TAG, str);
@@ -248,7 +260,10 @@ public class MATService extends Service {
 	@Override
 	public void onDestroy() {
 		// TODO Auto-generated method stub
-		if(s!=null)s.close();
+		if(s!=null){
+			canReceive = false;
+			s.close();
+		}
 		unregisterReceiver(r);
 		super.onDestroy();
 	}
